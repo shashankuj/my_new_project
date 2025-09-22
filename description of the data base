@@ -1,0 +1,98 @@
+Deliverable 2: ER Diagram Description
+Since I can't generate a visual file here, I will describe the Entity-Relationship Diagram (ERD) in detail. You can use this description to draw the diagram in MySQL Workbench or pgAdmin, which have built-in visualization tools.
+
+Entities and Their Attributes:
+
+authors
+
+Primary Key (PK): author_id
+
+Attributes: first_name, last_name, nationality, birth_year
+
+books
+
+Primary Key (PK): book_id
+
+Attributes: title, isbn, publication_year, genre
+
+Foreign Key (FK): author_id → authors(author_id)
+
+members
+
+Primary Key (PK): member_id
+
+Attributes: first_name, last_name, email, phone_number, date_of_birth, membership_date
+
+book_copies
+
+Primary Key (PK): copy_id
+
+Attributes: acquisition_date, status
+
+Foreign Key (FK): book_id → books(book_id)
+
+book_loans
+
+Primary Key (PK): loan_id
+
+Attributes: loan_date, due_date, return_date
+
+Foreign Key (FK): copy_id → book_copies(copy_id)
+
+Foreign Key (FK): member_id → members(member_id)
+
+Relationships (Cardinality):
+
+Authors ➜ Books (1-to-Many)
+
+One Author can write Many Books.
+
+One Book is written by One Author.
+
+This is implemented by the author_id FK in the books table.
+
+Books ➜ Book_Copies (1-to-Many)
+
+One Book (title) can have Many physical Copies.
+
+One Copy is an instance of One Book.
+
+This is implemented by the book_id FK in the book_copies table.
+
+Members ➜ Book_Loans (1-to-Many)
+
+One Member can have Many Loans (over time).
+
+One Loan is associated with One Member.
+
+This is implemented by the member_id FK in the book_loans table.
+
+Book_Copies ➜ Book_Loans (1-to-Many)
+
+One physical Copy can be part of Many Loans throughout its lifetime (loaned, returned, loaned again).
+
+One Loan is for One specific physical Copy.
+
+This is implemented by the copy_id FK in the book_loans table.
+
+Visual Guide for your ERD Tool:
+When you draw this, it will look like a classic "crow's foot" diagram. The book_loans table is in the center, connecting members and book_copies. book_copies connects to books, which in turn connects to authors.
+
+Outcome: A Well-Structured Schema
+This schema is well-structured because it:
+
+Avoids Data Redundancy: Author information is stored once, not repeated for every book. Book details (title, author) are stored once, not repeated for every copy.
+
+Enforces Data Integrity: Foreign Key constraints ensure you can't loan a copy that doesn't exist or add a book by an author who isn't in the database.
+
+Accurately Models Real-World Relationships: It correctly represents that a loan is a transaction between a member and a specific physical copy of a book.
+
+Is Scalable: It's easy to add new authors, books, copies, and members without modifying the structure.
+
+Next Steps for you:
+
+Run this script in your chosen SQL tool (MySQL Workbench, etc.).
+
+Use the tool's diagramming feature to reverse-engineer the ERD from the database. It will automatically create the visual based on the foreign keys!
+
+Try inserting some sample data and writing queries
