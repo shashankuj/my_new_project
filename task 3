@@ -1,0 +1,104 @@
+Task 3: Writing Basic SELECT Queries
+select * from sailors;
+select * from boats;
+select * from reserves;
+select distinct Sname,age from sailors;
+select * from sailors where rating>7;
+select s.sname from sailors s ,reserves r where s.sid = r.sid and r.bid=103;
+select r.sid from reserves r,boats b where b.bid=r.bid and b.color='red';
+select s.sname from sailors ,boats b ,reserves r where s.sid=r.sid and r.bid=b.bid and b.color='red';
+select s.age from sailors s where s.sname Like'B_%B%';
+SELECT DISTINCT s.sname, s.rating
+FROM sailors s
+JOIN reserves r ON s.sid = r.sid
+JOIN boats b ON r.bid = b.bid
+WHERE b.color LIKE '%e%'  -- Color contains 'e'
+   AND s.rating > 5
+ORDER BY s.rating DESC, s.sname;
+SELECT 
+    CASE 
+        WHEN rating BETWEEN 1 AND 3 THEN 'Low'
+        WHEN rating BETWEEN 4 AND 7 THEN 'Medium'
+        WHEN rating BETWEEN 8 AND 10 THEN 'High'
+        ELSE 'No Rating'
+    END as rating_category,
+    COUNT(*) as sailor_count
+FROM sailors
+GROUP BY rating_category
+ORDER BY sailor_count DESC;
+SELECT sname FROM sailors WHERE sname LIKE 'a%';      -- Starts with 'a'
+SELECT sname FROM sailors WHERE sname LIKE '%t';      -- Ends with 't'
+SELECT sname FROM sailors WHERE sname LIKE '%r%';     -- Contains 'r'
+SELECT sname FROM sailors WHERE sname LIKE '_o_';     -- Three letters, 'o' in middle
+SELECT sname FROM sailors WHERE sname LIKE 'h_r%';    -- Starts with 'h', third letter 'r'
+SELECT sname, rating, age FROM sailors ORDER BY rating;
+
+-- ORDER BY descending
+SELECT sname, rating, age FROM sailors ORDER BY age DESC;
+
+-- Multiple column sorting
+SELECT sname, rating, age 
+FROM sailors 
+ORDER BY rating DESC, age ASC;
+
+-- ORDER BY with WHERE clause
+SELECT sname, rating, age 
+FROM sailors 
+WHERE rating IS NOT NULL 
+ORDER BY rating DESC;
+-- WHERE clause with single condition
+SELECT * FROM sailors WHERE rating > 7;
+
+-- AND operator
+SELECT sname, rating, age 
+FROM sailors 
+WHERE rating > 5 AND age > 30;
+
+-- OR operator
+SELECT sname, rating, age 
+FROM sailors 
+WHERE rating > 8 OR age < 25;
+
+-- LIKE operator for pattern matching
+SELECT * FROM sailors WHERE sname LIKE 'h%';  -- Names starting with 'h'
+SELECT * FROM sailors WHERE sname LIKE '%b%'; -- Names containing 'b'
+
+-- BETWEEN operator
+SELECT sname, age 
+FROM sailors 
+WHERE age BETWEEN 30 AND 50;
+
+-- Combining multiple conditions
+SELECT sname, rating, age 
+FROM sailors 
+WHERE (rating BETWEEN 5 AND 9) AND sname LIKE '%a%';
+
+-- Handling NULL values
+SELECT * FROM sailors WHERE rating IS NULL;
+SELECT * FROM sailors WHERE age IS NOT NULL;
+1. What does SELECT * do?
+SELECT  retrieves all columns from the specified table(s). 
+It's a wildcard that means "return every column available.
+2. How do you filter rows?
+Rows are filtered using the WHERE clause with conditions
+3. What is LIKE '%value%'?
+LIKE '%value%' is a pattern matching operator that finds rows where a column contains the substring 'value' anywhere in the text:
+% matches any sequence of characters (including zero characters)
+'%value%' finds records where the column has 'value' anywhere in it
+4. What is BETWEEN used for?
+BETWEEN is used to filter rows where a column's value falls within a specified range (inclusive)
+5. How do you limit output rows?
+Use LIMIT to restrict the number of rows returned
+6. Difference between = and IN
+= is used for single value comparison
+IN is used for multiple value comparison (like multiple OR conditions)
+7. How to sort in descending order?
+Use ORDER BY column_name DESC
+SELECT * FROM sailors ORDER BY age DESC; -- Oldest sailors first
+SELECT * FROM sailors ORDER BY rating DESC, age ASC; -- Multiple column sort
+8. What is aliasing?
+Aliasing gives a temporary name to a column or table using the AS keyword (AS is optional)
+9. Explain DISTINCT.
+DISTINCT removes duplicate rows from the result set, showing only unique values:
+10. What is the default sort order?
+The default sort order for ORDER BY is ASCENDING (ASC). If you don't specify, it sorts from lowest to highest
