@@ -1,0 +1,107 @@
+SELECT COUNT(*) AS total_sailors FROM sailors;
+SELECT COUNT(*) AS experienced_sailors 
+FROM sailors 
+WHERE rating > 5;
+SELECT COUNT(DISTINCT rating) AS unique_ratings FROM sailors;
+SELECT AVG(age) AS average_age FROM sailors;
+SELECT AVG(COALESCE(age, 0)) AS avg_age_with_nulls FROM sailors;
+SELECT SUM(rating) AS total_rating_sum FROM sailors;
+SELECT MIN(age) AS youngest, MAX(age) AS oldest FROM sailors;
+SELECT 
+    COUNT(*) AS total_sailors,
+    AVG(age) AS avg_age,
+    MIN(rating) AS min_rating,
+    MAX(rating) AS max_rating,
+    SUM(rating) AS total_rating
+FROM sailors;
+SELECT 
+    rating,
+    COUNT(*) AS sailor_count,
+    AVG(age) AS average_age,
+    MIN(age) AS min_age,
+    MAX(age) AS max_age
+FROM sailors
+GROUP BY rating
+ORDER BY rating;
+SELECT 
+    CASE 
+        WHEN age < 25 THEN 'Under 25'
+        WHEN age BETWEEN 25 AND 35 THEN '25-35'
+        WHEN age BETWEEN 36 AND 45 THEN '36-45'
+        WHEN age > 45 THEN 'Over 45'
+        ELSE 'Age Unknown'
+    END AS age_group,
+    COUNT(*) AS sailor_count,
+    AVG(rating) AS avg_rating
+FROM sailors
+GROUP BY age_group
+ORDER BY MIN(age);
+SELECT 
+    color,
+    COUNT(*) AS boat_count
+FROM boats
+GROUP BY color;
+SELECT 
+    s.sid,
+    s.sname,
+    COUNT(r.bid) AS total_reservations
+FROM sailors s
+LEFT JOIN reserves r ON s.sid = r.sid
+GROUP BY s.sid, s.sname
+ORDER BY total_reservations DESC;
+SELECT 
+    b.bid,
+    b.bname,
+    b.color,
+    COUNT(r.sid) AS times_reserved
+FROM boats b
+LEFT JOIN reserves r ON b.bid = r.bid
+GROUP BY b.bid, b.bname, b.color
+ORDER BY times_reserved DESC;
+SELECT 
+    rating,
+    COUNT(*) AS sailor_count
+FROM sailors
+GROUP BY rating
+HAVING COUNT(*) > 1;
+SELECT 
+    CASE 
+        WHEN age < 30 THEN 'Young (<30)'
+        WHEN age BETWEEN 30 AND 50 THEN 'Middle-aged (30-50)'
+        ELSE 'Senior (>50)'
+    END AS age_category,
+    COUNT(*) AS sailor_count,
+    AVG(rating) AS avg_rating
+FROM sailors
+WHERE rating IS NOT NULL
+GROUP BY age_category
+HAVING AVG(rating) > 7;
+1. What is GROUP BY?
+GROUP BY groups rows that have the same values in specified columns into summary rows. 
+It's used with aggregate functions to perform calculations on each group.
+2. Difference between WHERE and HAVING?
+WHERE filters rows before aggregation
+HAVING filters groups after aggregation
+3. How does COUNT(*) differ from COUNT(column)?
+COUNT(*) counts all rows, including NULLs
+COUNT(column) counts only non-NULL values in that column
+4. Can you group by multiple columns?
+Yes, GROUP BY can use multiple columns to create hierarchical groups.
+5. What is ROUND() used for?
+ROUND() rounds numeric values to a specified number of decimal places.
+6. How do you find the highest salary by department?
+(Adapted for our sailors database - highest rating by boat color)
+7. What is the default behavior of GROUP BY?
+GROUP BY combines rows with identical values in the specified columns into single rows. Without aggregates, it acts like DISTINCT, but it's typically used with aggregate functions to summarize data.
+8. Explain AVG and SUM.
+AVG() calculates the average (mean) of numeric values
+SUM() calculates the total sum of numeric values
+9. How to count distinct values?
+Use COUNT(DISTINCT column) to count unique values.
+10. What is an aggregate function?
+An aggregate function performs a calculation on a set of values and returns a single value. Common aggregates:
+COUNT() - Counts rows or non-NULL values
+SUM() - Adds numeric values
+AVG() - Calculates average
+MIN()/MAX() - Finds minimum/maximum values
+GROUP_CONCAT() - Concatenates values (SQLite)
