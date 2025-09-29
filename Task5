@@ -1,0 +1,151 @@
+Task 5:  SQL Joins (Inner, Left, Right, Full)
+CREATE TABLE  customers (
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(50) NOT NULL,
+    city VARCHAR(50),
+    email VARCHAR(100)
+);
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    order_date DATE,
+    total_amount DECIMAL(10,2),
+    status VARCHAR(20),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+INSERT INTO customers VALUES
+(1, 'John Smith', 'New York', 'john@email.com'),
+(2, 'Jane Doe', 'Los Angeles', 'jane@email.com'),
+(3, 'Bob Johnson', 'Chicago', 'bob@email.com'),
+(4, 'Alice Brown', 'Miami', NULL),
+(5, 'Charlie Wilson', 'Seattle', 'charlie@email.com');
+INSERT INTO orders VALUES
+(101, 1, '2024-01-15', 150.00, 'Delivered'),
+(102, 1, '2024-02-20', 200.00, 'Processing'),
+(103, 2, '2024-01-22', 75.50, 'Delivered'),
+(104, 3, '2024-03-10', 300.00, 'Shipped'),
+(105, 5, '2024-02-28', 125.75, 'Delivered'),
+(106, NULL, '2024-03-15', 50.00, 'Processing');
+SELECT 
+    c.customer_name,
+    c.city,
+    o.order_id,
+    o.order_date,
+    o.total_amount
+FROM customers c
+INNER JOIN orders o ON c.customer_id = o.customer_id;
+SELECT 
+    c.customer_name,
+    o.order_date,
+    o.total_amount,
+    o.status
+FROM customers c
+INNER JOIN orders o ON c.customer_id = o.customer_id
+WHERE o.total_amount > 100
+ORDER BY o.total_amount DESC;
+SELECT 
+    c.customer_name,
+    o.order_date,
+    o.total_amount
+FROM customers c, orders o
+WHERE c.customer_id = o.customer_id;
+SELECT 
+    c.customer_id,
+    c.customer_name,
+    o.order_id,
+    o.order_date,
+    o.total_amount
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id;
+SELECT 
+    c.customer_id,
+    c.customer_name,
+    c.email
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+WHERE o.order_id IS NULL;
+SELECT 
+    c.customer_name,
+    COUNT(o.order_id) AS total_orders,
+    COALESCE(SUM(o.total_amount), 0) AS total_spent
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name
+ORDER BY total_spent DESC;
+SELECT 
+    o.order_id,
+    o.order_date,
+    o.total_amount,
+    c.customer_name
+FROM customers c
+RIGHT JOIN orders o ON c.customer_id = o.customer_id;
+SELECT 
+    o.order_id,
+    o.order_date,
+    o.total_amount
+FROM customers c
+RIGHT JOIN orders o ON c.customer_id = o.customer_id
+WHERE c.customer_id IS NULL;
+SELECT 
+    c.customer_id,
+    c.customer_name,
+    o.order_id,
+    o.order_date
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+
+UNION
+
+SELECT 
+    c.customer_id,
+    c.customer_name,
+    o.order_id,
+    o.order_date
+FROM customers c
+RIGHT JOIN orders o ON c.customer_id = o.customer_id;
+SELECT 
+    COALESCE(c.customer_id, o.customer_id) AS customer_id,
+    c.customer_name,
+    o.order_id,
+    o.order_date,
+    o.total_amount
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+
+UNION
+
+SELECT 
+    COALESCE(c.customer_id, o.customer_id) AS customer_id,
+    c.customer_name,
+    o.order_id,
+    o.order_date,
+    o.total_amount
+FROM customers c
+RIGHT JOIN orders o ON c.customer_id = o.customer_id;
+
+1. Difference between INNER and LEFT JOIN?
+INNER JOIN: Returns only matching records from both tables
+LEFT JOIN: Returns all records from left table + matching records from right table
+2. What is a FULL OUTER JOIN?
+Returns all records when there's a match in either table. Combines results of both LEFT and RIGHT joins.
+3. Can joins be nested?7. Can you join tables without foreign key?
+Yes! Foreign keys enforce referential integrity but don't affect JOIN operations
+Yes, through subqueries or multiple JOIN conditions
+4. How to join more than 2 tables?
+Chain multiple JOIN clauses
+5. What is a cross join?
+Returns Cartesian product - every row from first table combined with every row from second table.
+6. What is a natural join?
+Automatically joins tables on columns with same names. Not recommended - can be unpredictable
+7. Can you join tables without foreign key?
+Yes! Foreign keys enforce referential integrity but don't affect JOIN operations
+8. What is a self-join?
+Joining a table to itself. Useful for hierarchical data or comparing rows within same table
+9. What causes Cartesian product?
+Cartesian product occurs when:
+Using CROSS JOIN explicitly
+Joining tables without proper JOIN condition
+Forgetting WHERE clause in old-style joins
+10. How to optimize joins?
+Indexing
+
