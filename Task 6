@@ -1,0 +1,214 @@
+Task 6:Subqueries and Nested Queries
+SELECT sname, rating, age
+FROM sailors
+WHERE rating = (SELECT MAX(rating) FROM sailors);
+SELECT sname, age
+FROM sailors
+WHERE age > (SELECT AVG(age) FROM sailors);
+SELECT b.bname, b.color
+FROM boats b
+WHERE b.bid IN (
+    SELECT r.bid 
+    FROM reserves r 
+    WHERE r.sid = (
+        SELECT sid FROM sailors WHERE rating = (SELECT MAX(rating) FROM sailors)
+    )
+);
+SELECT sname, rating
+FROM sailors
+WHERE sid IN (
+    SELECT r.sid
+    FROM reserves r
+    JOIN boats b ON r.bid = b.bid
+    WHERE b.color = 'blue'
+);
+SELECT bname, color
+FROM boats
+WHERE bid NOT IN (
+    SELECT DISTINCT bid 
+    FROM reserves 
+    WHERE bid IS NOT NULL
+);
+SELECT s.sname, s.rating
+FROM sailors s
+WHERE s.sid IN (
+    SELECT r.sid FROM reserves r JOIN boats b ON r.bid = b.bid WHERE b.bname = 'interlake'
+)
+AND s.sid IN (
+    SELECT r.sid FROM reserves r JOIN boats b ON r.bid = b.bid WHERE b.bname = 'clipper'
+);
+SELECT 
+    s.sname,
+    s.rating,
+    (SELECT COUNT(*) FROM reserves r WHERE r.sid = s.sid) AS reservation_count,
+    (SELECT COUNT(*) FROM reserves r WHERE r.sid = s.sid AND r.days IS NOT NULL) AS dated_reservations
+FROM sailors s;
+SELECT 
+    b.bname,
+    b.color,
+    (SELECT COUNT(*) FROM reserves r WHERE r.bid = b.bid) AS times_reserved,
+    (SELECT MAX(days) FROM reserves r WHERE r.bid = b.bid) AS last_reserved
+FROM boats b;
+SELECT 
+    sname,
+    rating,
+    (SELECT AVG(rating) FROM sailors) AS avg_rating,
+    rating - (SELECT AVG(rating) FROM sailors) AS rating_diff
+FROM sailors
+WHERE rating IS NOT NULL;
+SELECT 
+    sailor_stats.sname,
+    sailor_stats.reservation_count,
+    sailor_stats.avg_boat_age
+FROM (
+    SELECT 
+        s.sid,
+        s.sname,
+        COUNT(r.bid) AS reservation_count,
+        AVG(s.age) AS avg_boat_age
+    FROM sailors s
+    LEFT JOIN reserves r ON s.sid = r.sid
+    GROUP BY s.sid, s.sname
+) AS sailor_stats
+WHERE sailor_stats.reservation_count > 1;
+SELECT 
+    age_group,
+    COUNT(*) AS sailor_count,
+    AVG(rating) AS avg_rating
+FROM (
+    SELECT 
+        sid,
+        sname,
+        rating,
+        CASE 
+            WHEN age < 30 THEN 'Under 30'
+            WHEN age BETWEEN 30 AND 50 THEN '30-50'
+            ELSE 'Over 50'
+        END AS age_group
+    FROM sailors
+    WHERE age IS NOT NULL
+) AS age_categories
+GROUP BY age_group
+ORDER BY avg_rating DESC;
+SELECT 
+    s.sname,
+    boat_reservations.reservation_count,
+    boat_reservations.boat_names
+FROM sailors s
+JOIN (
+    SELECT 
+        r.sid,
+        COUNT(*) AS reservation_count,
+        GROUP_CONCAT(b.bname) AS boat_names
+    FROM reserves r
+    JOIN boats b ON r.bid = b.bid
+    GROUP BY r.sid
+) AS boat_reservations ON s.sid = boat_reservations.sid;
+SELECT s1.sname, s1.rating, s1.age
+FROM sailors s1
+WHERE s1.rating > (
+    SELECT AVG(s2.rating)
+    FROM sailors s2
+    WHERE 
+        (s1.age < 30 AND s2.age < 30) OR
+        (s1.age BETWEEN 30 AND 50 AND s2.age BETWEEN 30 AND 50) OR
+        (s1.age > 50 AND s2.age > 50)
+);
+SELECT b1.bname, b1.color, reservation_count
+FROM (
+    SELECT b.bid, b.bname, b.color, COUNT(r.rid) AS reservation_count
+    FROM boats b
+    LEFT JOIN reserves r ON b.bid = r.bid
+    GROUP BY b.bid, b.bname, b.color
+) b1
+WHERE reservation_count > (
+    SELECT AVG(reservation_count)
+    FROM (
+        SELECT COUNT(r.rid) AS reservation_count
+        FROM boats b2
+        LEFT JOIN reserves r ON b2.bid = r.bid
+        WHERE b2.color = b1.color
+        GROUP BY b2.bid
+    ) AS color_avg
+);
+SELECT sname, rating
+FROM sailors s
+WHERE EXISTS (
+    SELECT 1 
+    FROM reserves r 
+    WHERE r.sid = s.sid
+);
+SELECT bname, color
+FROM boats
+WHERE bid = (
+    SELECT bid
+    FROM reserves
+    WHERE sid IN (
+        SELECT sid 
+        FROM sailors 
+        WHERE rating > 7
+    )
+    GROUP BY bid
+    ORDER BY COUNT(*) DESC
+    LIMIT 1
+);
+SELECT 
+    s.sname,
+    reservation_count,
+    (SELECT AVG(res_count) FROM (
+        SELECT COUNT(*) AS res_count 
+        FROM reserves 
+        GROUP BY sid
+    ) AS avg_table) AS avg_reservations
+FROM sailors s
+JOIN (
+    SELECT sid, COUNT(*) AS reservation_count
+    FROM reserves
+    GROUP BY sid
+) AS res_counts ON s.sid = res_counts.sid
+WHERE reservation_count > (
+    SELECT AVG(res_count) FROM (
+        SELECT COUNT(*) AS res_count 
+        FROM reserves 
+        GROUP BY sid
+    ) AS inner_avg
+);
+SELECT sname, unique_boats
+FROM (
+    SELECT 
+        s.sname,
+        COUNT(DISTINCT r.bid) AS unique_boats,
+        DENSE_RANK() OVER (ORDER BY COUNT(DISTINCT r.bid) DESC) as rank_pos
+    FROM sailors s
+    JOIN reserves r ON s.sid = r.sid
+    GROUP BY s.sid, s.sname
+) AS ranked_sailors
+WHERE rank_pos <= 3;
+1. What is a subquery?
+A subquery (or inner query) is a SQL query nested inside another query (outer query). It's enclosed in parentheses and executes first.
+2. Difference between subquery and join?
+Subquery	Join
+Can return scalar values / Returns columns from multiple tables
+Often more readable for complex conditions	/ Better performance for large datasets
+Can be used in SELECT, WHERE, HAVING	/ Used primarily in FROM clause
+May execute once or multiple times	/ Executes once
+3. What is a correlated subquery?
+A correlated subquery references columns from the outer query. It executes once for each row processed by the outer query
+4. Can subqueries return multiple rows?
+Yes, but it depends on the context and operators used
+5. How does EXISTS work?
+EXISTS returns TRUE if the subquery returns at least one row, FALSE otherwise. It stops at the first match (short-circuit evaluation)
+6. How is performance affected by subqueries?
+It depends:
+Non-correlated subqueries: Execute once, generally good performance
+Correlated subqueries: Execute for each row, can be slow on large datasets
+JOINS often outperform subqueries for simple relationships
+Subqueries can be more readable for complex business logic
+7. What is scalar subquery?
+A scalar subquery returns exactly one row with one column. It can be used anywhere a single value is expected
+8. Where can we use subqueries?
+Subqueries can be used in multiple clauses
+9. Can a subquery be in FROM clause?
+Yes! This is called a derived table or inline view
+10. What is a derived table?
+A derived table is a subquery in the FROM clause that acts as a temporary table for the main query
