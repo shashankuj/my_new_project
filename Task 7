@@ -1,0 +1,120 @@
+Task 7:Creating Views
+CREATE VIEW active_sailors AS
+SELECT DISTINCT s.sid, s.sname, s.rating, s.age
+FROM sailors s
+JOIN reserves r ON s.sid = r.sid;
+SELECT * FROM active_sailors ORDER BY rating DESC;
+CREATE VIEW boat_reservations AS
+SELECT 
+    b.bid,
+    b.bname,
+    b.color,
+    s.sid,
+    s.sname,
+    s.rating,
+    r.days AS reservation_date
+FROM boats b
+JOIN reserves r ON b.bid = r.bid
+JOIN sailors s ON r.sid = s.sid;
+SELECT * FROM boat_reservations WHERE color = 'blue';
+CREATE VIEW sailor_statistics AS
+SELECT 
+    s.sid,
+    s.sname,
+    s.rating,
+    s.age,
+    COUNT(r.bid) AS total_reservations,
+    COUNT(DISTINCT b.color) AS unique_boat_colors,
+    MIN(r.days) AS first_reservation,
+    MAX(r.days) AS last_reservation,
+    (SELECT COUNT(*) FROM reserves r2 WHERE r2.sid = s.sid AND r2.days IS NOT NULL) AS dated_reservations
+FROM sailors s
+LEFT JOIN reserves r ON s.sid = r.sid
+LEFT JOIN boats b ON r.bid = b.bid
+GROUP BY s.sid, s.sname, s.rating, s.age;
+SELECT 
+    sname,
+    rating,
+    total_reservations,
+    unique_boat_colors
+FROM sailor_statistics
+WHERE total_reservations > 0
+ORDER BY total_reservations DESC;
+CREATE VIEW monthly_reservation_summary AS
+SELECT 
+    YEAR(days) AS reservation_year,
+    MONTH(days) AS reservation_month,
+    COUNT(*) AS total_reservations,
+    COUNT(DISTINCT sid) AS unique_sailors,
+    COUNT(DISTINCT bid) AS unique_boats,
+    AVG((SELECT COUNT(*) FROM reserves r2 WHERE YEAR(r2.days) = YEAR(r.days) AND MONTH(r2.days) = MONTH(r.days))) AS avg_daily_reservations
+FROM reserves
+WHERE days IS NOT NULL
+GROUP BY YEAR(days), MONTH(days);
+SELECT * FROM monthly_reservation_summary 
+WHERE reservation_year = 1998
+ORDER BY reservation_month;
+CREATE VIEW public_sailor_info AS
+SELECT 
+    sid,
+    sname,
+    rating,
+    CASE 
+        WHEN age < 30 THEN 'Young'
+        WHEN age BETWEEN 30 AND 50 THEN 'Middle-aged'
+        ELSE 'Senior'
+    END AS age_group
+FROM sailors
+WHERE rating IS NOT NULL;
+SELECT * FROM public_sailor_info;
+CREATE VIEW available_boats AS
+SELECT 
+    b.bid,
+    b.bname,
+    b.color,
+    CASE 
+        WHEN r.days IS NOT NULL THEN 'Reserved'
+        ELSE 'Available'
+    END AS status,
+    r.days AS next_available
+FROM boats b
+LEFT JOIN reserves r ON b.bid = r.bid AND r.days >= CURRENT_DATE;
+SELECT * FROM available_boats ORDER BY status, bname;
+1. What is a view?
+A view is a virtual table based on the result of a SQL query. It doesn't store data physically but displays data from one or more tables.
+2. Can we update data through a view?
+Yes, but with limitations. Views must be "updatable" - they should:
+Contain only one table in FROM clause
+Not use DISTINCT, GROUP BY, or aggregates
+Not use subqueries in certain ways
+Include all NOT NULL columns without defaults
+3. What is a materialized view?
+A materialized view stores the query results physically and can be refreshed periodically. Unlike regular views, it improves performance but may have stale data.
+4. Difference between view and table?
+Aspect	        View	                      Table
+Storage	 No physical storage	         Physical storage on disk
+Data	   Virtual,computed on access    Actual data stored
+Performance	 Slower (executes query each time)	Faster (direct data access)
+Indexing	   Generally cannot be indexed       directly	Can have indexes
+Updates	    Limited update capability      	Full CRUD operations
+Schema	    Derived from underlying tables	  Independent schema
+5. How to drop a view?
+Use DROP VIEW statement
+6. Why use views?
+Views are one of the most powerful features in SQL databases.
+Security and Access Control
+Simplification of Complex Queries
+Data Abstraction and Schema Independence
+Consistency and Business Rules Enforcement
+7. Can we create indexed views?
+In MySQL, no. But in SQL Server and other databases, you can create indexed views (materialized views with indexes)
+8. How to secure data using views?
+Views provide column-level and row-level security
+9. What are limitations of views?
+Performance: No inherent performance benefit (queries run each time)
+Update restrictions: Complex views often can't be updated
+No indexes: Cannot create indexes directly on views (in MySQL)
+Dependencies: Views depend on underlying table structures
+Nesting limits: Too many nested views can impact performance
+10. How does WITH CHECK OPTION work?
+WITH CHECK OPTION ensures that data modified through the view still satisfies the view's WHERE condition.
